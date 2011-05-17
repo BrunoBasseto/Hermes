@@ -1,0 +1,63 @@
+README
+
+Hermes is a tiny TCP stack suite for 16-bit PIC24 and 32-bit PIC32 microprocessors and runs over the Cronos multi-threading executive. It features:
+* Small memory requirements
+* Customizable protocols selection
+* Multi-threaded operation
+* Multiple network interfaces allowed (ethernet, PPP, wi-fi)
+* Protocols already supported: 
+** Link layer: ARP, PPP
+** Network layer: ICMP, IP
+** Transport layer: TCP, UDP
+** Application layer: DHCP, DNSP, SMTP
+
+Examples of use:
+
+#include "cronos.h"
+#include "hermes.h"
+void send_email(void)
+{
+    IPV4 server = dns_get_ip("smtp.openmind.net", 0);
+	if(!server.d) return;                                    // IP not found
+	
+	if(!smtp_new(server, 0)) return;                         // start mail session
+	if(!smtp_from("bruno@openmind.net")) return;             // sender
+	if(!smtp_to("jjpeavey@gmail.com")) return;
+	if(!smtp_to("rdmiranda@yahoo.com")) return;
+	if(!smtp_data("Hello everybody")) return;                // email body...
+	if(!smtp_data("This is Hermes SMTP client")) return;
+	if(!smtp_data("Pretty cool, ahn?")) return;
+	smtp_send();
+}
+
+
+#include "cronos.h"
+#include "hermes.h"
+void simple_httpd(void)
+{
+    PPBUF buf;
+    while(os_not_terminated()) {
+        // initiates a service at the port 80 and waits for a client--
+        tcp_reset(SOCKET_0);
+        if(tcp_listen(SOCKET_0, 80)) {
+            // client is connected--
+            while(os_not_terminated() && tcp_is_open(SOCKET_0)) {
+                // read and parse a command--
+                buf = tcp_read(SOCKET_0);
+                if(buf) {
+                    if(compare_string(buf, "GET / HTTP")) {
+                    	// HTTP "GET" command - send a dummy message --
+                        release_buffer(buf);
+                        buf = tcp_new(SOCKET_0);
+                        write_string(buf, "HTTP/1.0 200 OK\r\n\r\n");
+                        write_string(buf, "<BODY>Hello World!</BODY>");
+                        tcp_send(SOCKET_0, buf);
+                        release_buffer(buf);
+                    } else
+                        release_buffer(buf);
+                }	
+                tcp_close(SOCKET_0);
+            }
+        }
+    }
+}

@@ -1,0 +1,13 @@
+void parse_tcp(PPBUF pbuf);
+BOOL tcp_listen(BYTE n, UInt16 p_loc);
+BOOL tcp_open(BYTE n, UInt16 p_loc, IPV4 ip_rem, UInt16 p_rem, BYTE interface);
+void tcp_close(BYTE n);
+void tcp_reset(BYTE n);
+PPBUF tcp_new(BYTE s);
+BOOL tcp_send(BYTE id, PPBUF pbuf);
+BOOL tcp_send_text(BYTE id, char *text);
+PPBUF tcp_read(BYTE n);
+UInt16 tcp_get_port();
+BOOL tcp_is_open(BYTE s);
+BOOL tcp_has_data(BYTE s);
+void tcp_init(void);
